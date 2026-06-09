@@ -17,7 +17,7 @@ if ($input_budget > 0) {
     foreach ($all_menus as $menu) {
         if ($menu['price'] <= $input_budget) {
             $filtered_menus[] = $menu;
-        }
+        }  
     }
 } else {
     $filtered_menus = $all_menus;
@@ -62,10 +62,9 @@ if ($input_budget > 0) {
 <body class="bg-bb-light font-sans text-slate-800 min-h-screen pb-20 md:pb-0">
 
     <nav class="hidden md:flex bg-white border-b border-slate-200 sticky top-0 z-50 px-8 py-4 justify-between items-center shadow-sm">
-        <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 bg-bb-green rounded-full flex items-center justify-center text-white font-bold text-sm">Rp</div>
-            <span class="text-xl font-bold text-bb-green">Budget<span class="text-bb-orange">Bite</span></span>
-        </div>
+    <div class="flex items-center space-x-2">
+        <img src="logo-budgetbite.png" alt="Temukan makanan sesuai bugetmu" class="h-10 w-auto object-contain">
+    </div> 
         <div class="flex space-x-6 text-sm font-semibold text-slate-600">
             <a href="#" class="text-bb-green">Home</a>
             <a href="#" class="hover:text-bb-green transition">Makanan</a>
@@ -80,13 +79,9 @@ if ($input_budget > 0) {
         
         <aside class="md:col-span-1 bg-white border border-slate-200/80 p-5 md:p-6 rounded-2xl shadow-sm md:h-fit sticky md:top-24 z-40">
             
-            <div class="flex items-center space-x-3 mb-5 md:hidden">
-                <div class="w-10 h-10 bg-bb-green rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md shadow-emerald-100">Rp</div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight text-bb-green">Budget<span class="text-bb-orange">Bite</span></h1>
-                    <p class="text-[11px] text-bb-gray font-medium">Temukan Makanan Sesuai Budgetmu</p>
-                </div>
-            </div>
+    <div class="flex items-center space-x-3 mb-5 md:hidden">
+        <img src="logo-budgetbite.png" alt="BudgetBite Logo" class="h-14 w-auto object-contain">
+    </div>
 
             <div class="hidden md:block mb-6">
                 <h2 class="text-xl font-bold text-slate-800 leading-tight">Temukan Makanan <br><span class="text-bb-green">Sesuai Budgetmu</span></h2>
