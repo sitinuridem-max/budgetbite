@@ -28,13 +28,13 @@
         }
     </script>
     <style>
-        /* Sembunyikan scrollbar bawaan browser untuk menu kategori horizontal */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-bb-light font-sans text-slate-800 min-h-screen pb-20 md:pb-0">
 
+    <!-- NAV DESKTOP (Sudah disederhanakan: Hanya ada Home dan Gabung Mitra) -->
     <nav class="hidden md:flex bg-white border-b border-slate-200 sticky top-0 z-50 px-8 py-4 justify-between items-center shadow-sm">
         <div class="flex items-center space-x-2">
             <div class="w-8 h-8 bg-bb-green rounded-full flex items-center justify-center overflow-hidden">
@@ -42,11 +42,9 @@
             </div>
             <span class="text-xl font-bold text-bb-green">Budget<span class="text-bb-orange">Bite</span></span>
         </div>
-        <div class="flex space-x-6 text-sm font-semibold text-slate-600">
-            <a href="#" class="text-bb-green">Home</a>
-            <a href="#" class="hover:text-bb-green transition">Makanan</a>
-            <a href="#" class="hover:text-bb-green transition">Terdekat</a>
-            <a href="#" class="hover:text-bb-green transition">Favorit</a>
+        <div id="desktopNavLinks" class="flex space-x-6 text-sm font-semibold text-slate-600">
+            <a href="#" onclick="evtClickNav('all', 1, this)" class="text-bb-green hover:text-bb-green transition nav-link">Home</a>
+            <a href="mitra.html" class="text-bb-orange hover:underline pl-4 border-l border-slate-300">Gabung Mitra ↗</a>
         </div>
     </nav>
 
@@ -55,7 +53,6 @@
     <div class="max-w-7xl mx-auto px-4 py-6 md:py-10 grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
         
         <aside class="md:col-span-1 bg-white border border-slate-200/80 p-5 md:p-6 rounded-2xl shadow-sm md:h-fit sticky md:top-24 z-40">
-            
             <div class="flex items-center space-x-3 mb-5 md:hidden">
                 <div class="w-10 h-10 bg-bb-green rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md shadow-emerald-100">Rp</div>
                 <div>
@@ -71,14 +68,14 @@
 
             <form id="budgetForm" onsubmit="filterMenu(event)" class="space-y-4">
                 <div>
-                    <label for="budget" class="block text-xs md:text-sm font-semibold text-slate-700 mb-2">Isi Budget Kamu :</label>
+                    <label for="budget" class="block text-xs md:text-sm font-semibold text-slate-700 mb-2">Isi Budget Kamu (Maks Rp 18.000) :</label>
                     <div class="relative rounded-xl shadow-sm">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <span class="text-slate-400 font-bold text-sm md:text-base">Rp</span>
                         </div>
-                        <input type="number" id="budget" 
+                        <input type="number" id="budget" max="18000" 
                                class="block w-full pl-11 pr-4 py-2.5 md:py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-bb-green font-bold text-base md:text-lg text-slate-700 placeholder-slate-400 bg-slate-50/50 focus:bg-white transition" 
-                               placeholder="15.000" required>
+                               placeholder="18.000" required>
                     </div>
                 </div>
                 
@@ -94,12 +91,14 @@
         </aside>
 
         <main class="md:col-span-3 space-y-5">
-            
-            <div class="flex space-x-2 overflow-x-auto pb-4 scrollbar-hide border-b border-slate-200 text-xs md:text-sm">
+            <!-- TAB KATEGORI UTAMA (Tetap dipertahankan untuk menyaring menu) -->
+            <div id="mainCategoryTabs" class="flex space-x-2 overflow-x-auto pb-4 scrollbar-hide border-b border-slate-200 text-xs md:text-sm">
                 <button onclick="filterCategory('all', this)" class="category-btn bg-bb-green text-white px-4 py-2 rounded-full font-medium cursor-pointer shadow-sm flex-shrink-0">Semua</button>
                 <button onclick="filterCategory('makanan', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Makanan</button>
                 <button onclick="filterCategory('minuman', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Minuman</button>
                 <button onclick="filterCategory('combo', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Combo Paket</button>
+                <button onclick="filterCategory('terdekat', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Terdekat</button>
+                <button onclick="filterCategory('favorit', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Favorit</button>
             </div>
 
             <div class="flex justify-between items-center px-1">
@@ -109,64 +108,100 @@
                 </span>
             </div>
 
-            <div id="menuContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                </div>
+            <div id="menuContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 
             <div id="emptyState" class="hidden text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
                 <span class="text-3xl">😢</span>
-                <p class="text-xs md:text-sm font-medium text-slate-500 mt-2">Waduh, nggak ada yang pas nih. Coba naikkan sedikit budgetnya!</p>
+                <p class="text-xs md:text-sm font-medium text-slate-500 mt-2">Waduh, nggak ada yang pas nih. Coba masukkan budget di bawah Rp 18.000!</p>
             </div>
         </main>
     </div>
 
+    <!-- FOOTER MOBILE -->
     <footer class="md:hidden fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 backdrop-blur-md p-2.5 grid grid-cols-4 text-center text-[10px] font-medium text-bb-gray z-50 shadow-lg">
-        <div class="text-bb-green cursor-pointer">
+        <div class="text-bb-green cursor-pointer" onclick="filterCategory('all', document.querySelector('.category-btn:nth-child(1)'))">
             <span class="block text-xl mb-0.5">🏠</span> Home
         </div>
-        <div class="hover:text-bb-green cursor-pointer transition" onclick="filterCategory('makanan')">
+        <div class="hover:text-bb-green cursor-pointer transition" onclick="filterCategory('makanan', document.querySelector('.category-btn:nth-child(2)'))">
             <span class="block text-xl mb-0.5">🍔</span> Makanan
         </div>
-        <div class="hover:text-bb-green cursor-pointer transition" onclick="filterCategory('combo')">
+        <div class="hover:text-bb-green cursor-pointer transition" onclick="filterCategory('terdekat', document.querySelector('.category-btn:nth-child(5)'))">
             <span class="block text-xl mb-0.5">📍</span> Terdekat
         </div>
-        <div class="hover:text-bb-green cursor-pointer transition">
+        <div class="hover:text-bb-green cursor-pointer transition" onclick="filterCategory('favorit', document.querySelector('.category-btn:nth-child(6)'))">
             <span class="block text-xl mb-0.5">⭐</span> Favorit
         </div>
     </footer>
 
     <script>
-        // Database Mockup dipindahkan ke Array JS
         const allMenus = [
             {name: 'Nasi Ayam Geprek', price: 12000, resto: 'Kantin Hebat', image: 'images/ayam-geprek.jpg', category: 'makanan', tag: 'Laris'},
             {name: 'Mie Ayam + Bakso', price: 14000, resto: 'Kantin Sehat', image: 'images/mie-ayam-bakso.jpg', category: 'makanan', tag: 'Best Seller'},
             {name: 'Nasi Telur + Tempe', price: 10000, resto: 'Dapur Kampus', image: 'images/nasi-telur-tempe.jpg', category: 'makanan', tag: 'Hemat'},
-            {name: 'Es Teh Manis', price: 3000, resto: 'Kantin Hebat', image: 'images/es-teh-manis.jpg', category: 'minuman', tag: 'Segar'},
+            {name: 'Bakso Mercon', price: 13000, resto: 'Kantin Sehat', image: 'images/bakso-mercon.jpg', category: 'makanan', tag: 'Pedas Mantap'},
             {name: 'Combo Worth It (Nasi + Ayam + Es Teh)', price: 15000, resto: 'Kantin Hebat', image: 'images/nasi-ayam-esteh.jpg', category: 'combo', tag: 'Best Combo'},
-            {name: 'Bakso Mercon', price: 13000, resto: 'Kantin Sehat', image: 'images/bakso-mercon.jpg', category: 'makanan', tag: 'Pedas Mantap'}
+            {name: 'Nasi Goreng Telur', price: 13000, resto: 'Nasgor Malam Barokah', image: 'images/nasi-goreng-telur.jpg', category: 'makanan', tag: 'Laris'},
+            {name: 'Mie Instan Telur Pedas', price: 10000, resto: 'Warkop Nugas Kuy', image: 'images/Mie-Instan.jpg', category: 'makanan', tag: 'Hemat'},
+            {name: 'Nasi Rames Campur', price: 11000, resto: 'Warteg Bahari Jaya', image: 'images/nasi-remas.jpg', category: 'makanan', tag: 'Hemat'},
+            {name: 'Soto Ayam Kuah Bening', price: 12000, resto: 'Soto Seger Boyolali', image: 'images/soto-ayam.jpg', category: 'makanan', tag: 'Laris'},
+            {name: 'Ketoprak Telur Dadar', price: 13000, resto: 'Ketoprak Jakarta Pak Kumis', image: 'images/ketoprak-telur.jpg', category: 'makanan', tag: 'Laris'},
+            {name: 'Bubur Ayam Spesial', price: 10000, resto: 'Bubur Ayam Cianjur', image: 'images/bubur-ayam.jpg', category: 'makanan', tag: 'Sarapan'},
+            {name: 'Batagor Bumbu Kacang', price: 10000, resto: 'Siomay Batagor Bandung', image: 'images/batagor.jpg', category: 'makanan', tag: 'Camilan'},
+            {name: 'Siomay Ayam', price: 10000, resto: 'Siomay Batagor Bandung', image: 'images/siomay-ayam.jpg', category: 'makanan', tag: 'Camilan'},
+            {name: 'Cireng Rujak', price: 8000, resto: 'Jajanan Gorengan Hits', image: 'images/cireng-rujak.jpg', category: 'makanan', tag: 'Murah'},
+            {name: 'Sate Taichan Ayam', price: 15000, resto: 'Taichan Pedas Gila', image: 'images/sate-taichan.jpg', category: 'makanan', tag: 'Pedas'},
+            {name: 'Es Teh Manis', price: 3000, resto: 'Kantin Hebat', image: 'images/es-teh-manis.jpg', category: 'minuman', tag: 'Segar'},
+            {name: 'Es Lemon tea', price: 5000, resto: 'Kantin Hebat', image: 'images/es-lemon-tea.jpg', category: 'minuman', tag: 'Segar'},
+            {name: 'Air Mineral', price: 5000, resto: 'Kantin Hebat', image: 'images/air-mineral-new.png', category: 'minuman', tag: 'Segar'},
+            {name: 'Teh Hangat Manis', price: 3000, resto: 'Warteg Bahari Jaya', image: 'images/teh-hangat.jpg', category: 'minuman', tag: 'Hangat'},
+            {name: 'Jeruk Peras Hangat', price: 5000, resto: 'Warteg Bahari Jaya', image: 'images/jeruk-hangat.jpg', category: 'minuman', tag: 'Hangat'},
+            {name: 'Es Kopi Good Day Freeze', price: 5000, resto: 'Warkop Nugas Kuy', image: 'images/es-kopi-goodday.jpg', category: 'minuman', tag: 'Laris'},
+            {name: 'Kopi Hitam Kapal Api', price: 4000, resto: 'Warkop Nugas Kuy', image: 'images/kopi-hitam.jpg', category: 'minuman', tag: 'Hangat'},
+            {name: 'Es Susu Soda Gembira', price: 8000, resto: 'Kedai Pedas Judes', image: 'images/es-soda-gembira.jpg', category: 'minuman', tag: 'Rekomendasi'},
+            {name: 'Es Milo Susu', price: 6000, resto: 'Warkop Nugas Kuy', image: 'images/es-milo.jpg', category: 'minuman', tag: 'Laris'},
+            {name: 'Es Cappuccino Cincau', price: 6000, resto: 'Capcin Depot Kekinian', image: 'images/capcin.jpg', category: 'minuman', tag: 'Laris'},
+            {name: 'Es Lumut Pandan', price: 5000, resto: 'Jajanan Gorengan Hits', image: 'images/es-lumut.jpg', category: 'minuman', tag: 'Murah'},
+            {name: 'Jus Alpukat Kental manis', price: 10000, resto: 'Jus Buah Segar Sehat', image: 'images/jus-alpukat.jpg', category: 'minuman', tag: 'Kenyang'},
         ];
 
         let currentBudget = 0;
         let currentCategory = 'all';
 
-        // Fungsi format Rupiah manual agar mirip PHP number_format
         function formatRupiah(number) {
             return new Intl.NumberFormat('id-ID').format(number);
         }
 
-        // Fungsi Render Card Menu ke Layar
+        function evtClickNav(category, childIndex, element) {
+            event.preventDefault();
+            document.querySelectorAll('.nav-link').forEach(link => link.className = "hover:text-bb-green transition nav-link");
+            if(element) element.className = "text-bb-green hover:text-bb-green transition nav-link";
+
+            const targetBtn = document.querySelector(`#mainCategoryTabs button:nth-child(${childIndex})`);
+            filterCategory(category, targetBtn);
+        }
+
         function renderMenus() {
             const container = document.getElementById('menuContainer');
             const emptyState = document.getElementById('emptyState');
             container.innerHTML = '';
 
-            // Filter data secara dinamis
             const filtered = allMenus.filter(menu => {
                 const matchBudget = currentBudget === 0 || menu.price <= currentBudget;
-                const matchCategory = currentCategory === 'all' || menu.category === currentCategory;
+                
+                let matchCategory = false;
+                if (currentCategory === 'all') {
+                    matchCategory = true;
+                } else if (currentCategory === 'terdekat') {
+                    matchCategory = menu.resto.includes('Kantin') || menu.resto.includes('Dapur Kampus');
+                } else if (currentCategory === 'favorit') {
+                    matchCategory = menu.tag === 'Best Seller' || menu.tag === 'Laris' || menu.tag === 'Rekomendasi';
+                } else {
+                    matchCategory = menu.category === currentCategory;
+                }
+
                 return matchBudget && matchCategory;
             });
 
-            // Update Badge Jumlah Menu
             document.getElementById('menuCountBadge').innerText = `${filtered.length} Menu Pas`;
 
             if (filtered.length === 0) {
@@ -176,7 +211,6 @@
                 emptyState.classList.add('hidden');
             }
 
-            // Loop untuk membuat struktur HTML komponen card
             filtered.forEach(menu => {
                 const card = `
                     <div class="bg-white border border-slate-200/70 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 md:hover:-translate-y-1 transition duration-200 flex flex-row sm:flex-col justify-between h-28 sm:h-auto">
@@ -206,7 +240,6 @@
             });
         }
 
-        // Handler saat tombol "Cari Makanan" diklik
         function filterMenu(event) {
             event.preventDefault();
             const budgetInput = document.getElementById('budget').value;
@@ -221,7 +254,6 @@
             renderMenus();
         }
 
-        // Handler untuk Reset filter pencarian
         function resetFilter() {
             document.getElementById('budget').value = '';
             currentBudget = 0;
@@ -229,7 +261,6 @@
             renderMenus();
         }
 
-        // Handler klik tab kategori & ganti style active button
         function filterCategory(category, element) {
             currentCategory = category;
             
@@ -242,7 +273,6 @@
             renderMenus();
         }
 
-        // Load data pertama kali saat web dibuka
         window.onload = renderMenus;
     </script>
 </body>
