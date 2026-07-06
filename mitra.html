@@ -101,7 +101,16 @@
                 </div>
                 <span id="myMenuCount" class="text-xs bg-orange-100 text-bb-orange px-2.5 py-1 rounded-md font-semibold">0 Menu</span>
             </div>
+            
+            <!-- Tempat kartu menu dirender -->
             <div id="merchantMenuContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+            <!-- Empty State jika menu masih kosong -->
+            <div id="emptyMerchantState" class="hidden text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-200 p-8 shadow-sm">
+                <div class="text-5xl mb-3">📦</div>
+                <h4 class="text-sm font-bold text-slate-700">Belum Ada Menu yang Terdaftar</h4>
+                <p class="text-xs text-bb-gray mt-1 max-w-sm mx-auto">Silakan isi formulir di sebelah kiri untuk menambahkan menu makanan atau minuman pertama Anda!</p>
+            </div>
         </main>
     </div>
 
@@ -115,107 +124,110 @@
 
         let myMenus = JSON.parse(localStorage.getItem('sharedMenus')) || defaultMenus;
 
-        function formatRupiah(number) { return new Intl.NumberFormat('id-ID').format(number); }
-
-    function renderMerchantMenus() {
-    const container = document.getElementById('merchantMenuContainer');
-    // Tambahkan pengaman jika container tidak ditemukan di HTML
-    if (!container) return; 
-    
-    container.innerHTML = '';
-    
-    // Update jumlah menu di badge atas
-    const countBadge = document.getElementById('myMenuCount');
-    if (countBadge) {
-        countBadge.innerText = `${myMenus.length} Menu Terdaftar`;
-    }
-
-    // Jika menu kosong, tampilkan info kosong (opsional jika ada element-nya)
-    const emptyState = document.getElementById('emptyMerchantState');
-    if (myMenus.length === 0) {
-        if (emptyState) emptyState.classList.remove('hidden');
-        return;
-    } else {
-        if (emptyState) emptyState.classList.add('hidden');
-    }
-
-    myMenus.forEach((menu, index) => {
-        // PERBAIKAN DI SINI: Deteksi apakah menu.image berisi file upload (Base64) atau teks biasa
-        let imgUrl = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60';
-        
-        if (menu.image && menu.image.trim() !== '') {
-            imgUrl = menu.image;
+        function formatRupiah(number) { 
+            return new Intl.NumberFormat('id-ID').format(number); 
         }
-        
-        // Render struktur kartu dengan aman
-        const card = `
-            <div class="bg-white border border-slate-200/70 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between h-auto relative">
-                <div class="relative w-full h-32 flex-shrink-0 bg-slate-100">
-                    <img src="${imgUrl}" alt="${menu.name}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">
-                    <span class="absolute top-2 left-2 bg-bb-orange text-white text-[9px] font-bold px-2 py-0.5 rounded-md shadow-sm">
-                        ${menu.tag || 'Baru'}
-                    </span>
-                    <span class="absolute top-2 right-2 bg-slate-900/70 text-white text-[9px] px-2 py-0.5 rounded-md capitalize">
-                        ${menu.category || 'Makanan'}
-                    </span>
-                </div>
-                <div class="p-3 flex-1 flex flex-col justify-between">
-                    <div>
-                        <h4 class="font-bold text-xs md:text-sm text-slate-800 truncate mb-0.5">${menu.name}</h4>
-                        <p class="text-[13px] font-bold text-bb-green mt-1">
-                            Rp ${formatRupiah(menu.price)}
-                        </p>
+
+        function renderMerchantMenus() {
+            const container = document.getElementById('merchantMenuContainer');
+            if (!container) return; 
+            
+            container.innerHTML = '';
+            
+            const countBadge = document.getElementById('myMenuCount');
+            if (countBadge) {
+                countBadge.innerText = `${myMenus.length} Menu`;
+            }
+
+            const emptyState = document.getElementById('emptyMerchantState');
+
+            // Cek jika menu kosong, munculkan box pemberitahuan kosong
+            if (myMenus.length === 0) {
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            } else {
+                if (emptyState) emptyState.classList.add('hidden');
+            }
+
+            myMenus.forEach((menu, index) => {
+                let imgUrl = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60';
+                
+                if (menu.image && menu.image.trim() !== '') {
+                    imgUrl = menu.image;
+                }
+                
+                const card = `
+                    <div class="bg-white border border-slate-200/70 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between h-auto relative">
+                        <div class="relative w-full h-32 flex-shrink-0 bg-slate-100">
+                            <img src="${imgUrl}" alt="${menu.name}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">
+                            <span class="absolute top-2 left-2 bg-bb-orange text-white text-[9px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                                ${menu.tag || 'Baru'}
+                            </span>
+                            <span class="absolute top-2 right-2 bg-slate-900/70 text-white text-[9px] px-2 py-0.5 rounded-md capitalize">
+                                ${menu.category || 'Makanan'}
+                            </span>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-xs md:text-sm text-slate-800 truncate mb-0.5">${menu.name}</h4>
+                                <p class="text-[13px] font-bold text-bb-green mt-1">
+                                    Rp ${formatRupiah(menu.price)}
+                                </p>
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-slate-100 flex justify-end">
+                                <button onclick="deleteMenu(${index})" class="text-xs text-red-500 font-medium hover:text-red-700 transition">
+                                    Hapus Menu
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mt-3 pt-2 border-t border-slate-100 flex justify-end">
-                        <button onclick="deleteMenu(${index})" class="text-xs text-red-500 font-medium hover:text-red-700 transition">
-                            Hapus Menu
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        container.innerHTML += card;
-    });
-}
+                `;
+                container.innerHTML += card;
             });
         }
 
-    function addMenu(event) {
-    event.preventDefault();
-
-    const name = document.getElementById('menuName').value;
-    const price = parseInt(document.getElementById('menuPrice').value) || 0;
-    const category = document.getElementById('menuCategory').value;
-    const tag = document.getElementById('menuTag').value || 'Baru';
-    const resto = document.getElementById('restoName').value;
-    
-    // Ambil file gambar dari input
-    const imageInput = document.getElementById('menuImage');
-    const file = imageInput.files[0];
-
-    // Jika ada file yang diupload, proses gambarnya
-    if (file) {
-        const reader = new FileReader();
-        reader.onloadend = function() {
-            const base64Image = reader.result; // Ini adalah data gambar kamu
-
-            // Simpan ke array
-            myMenus.unshift({ name, price, category, tag, image: base64Image, resto });
+        function deleteMenu(index) {
+            myMenus.splice(index, 1);
             localStorage.setItem('sharedMenus', JSON.stringify(myMenus));
-
-            // Reset form dan render ulang
-            document.getElementById('menuForm').reset();
             renderMerchantMenus();
-            alert('Sukses menambahkan menu dengan gambar baru!');
+            alert('Menu berhasil dihapus!');
         }
-        reader.readAsDataURL(file);
-    } else {
-        // Jika tidak upload gambar, pakai gambar default kosong
-        myMenus.unshift({ name, price, category, tag, image: '', resto });
-        localStorage.setItem('sharedMenus', JSON.stringify(myMenus));
-        
-        document.getElementById('menuForm').reset();
-        renderMerchantMenus();
-        alert('Sukses menambahkan menu (Tanpa Gambar)!');
-    }
-}
+
+        function addMenu(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('menuName').value;
+            const price = parseInt(document.getElementById('menuPrice').value) || 0;
+            const category = document.getElementById('menuCategory').value;
+            const tag = document.getElementById('menuTag').value || 'Baru';
+            const resto = document.getElementById('restoName').value;
+            
+            const imageInput = document.getElementById('menuImage');
+            const file = imageInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64Image = reader.result;
+                    myMenus.unshift({ name, price, category, tag, image: base64Image, resto });
+                    localStorage.setItem('sharedMenus', JSON.stringify(myMenus));
+
+                    document.getElementById('menuForm').reset();
+                    renderMerchantMenus();
+                    alert('Sukses menambahkan menu dengan gambar baru!');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                myMenus.unshift({ name, price, category, tag, image: '', resto });
+                localStorage.setItem('sharedMenus', JSON.stringify(myMenus));
+                
+                document.getElementById('menuForm').reset();
+                renderMerchantMenus();
+                alert('Sukses menambahkan menu (Tanpa Gambar)!');
+            }
+        }
+
+        window.onload = renderMerchantMenus;
+    </script>
+</body>
+</html>
