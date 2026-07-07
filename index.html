@@ -28,31 +28,48 @@
         }
     </script>
     <style>
+        /* Sembunyikan scrollbar bawaan browser untuk menu kategori horizontal */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-bb-light font-sans text-slate-800 min-h-screen pb-20 md:pb-0">
 
-    <!-- NAV DESKTOP (Sudah disederhanakan: Hanya ada Home dan Gabung Mitra) -->
     <nav class="hidden md:flex bg-white border-b border-slate-200 sticky top-0 z-50 px-8 py-4 justify-between items-center shadow-sm">
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-2 cursor-pointer" onclick="resetFilter(); filterCategory('all')">
             <div class="w-8 h-8 bg-bb-green rounded-full flex items-center justify-center overflow-hidden">
                 <img src="images/logo.png" alt="Deskripsi Gambar" class="w-full h-full object-cover">
             </div>
             <span class="text-xl font-bold text-bb-green">Budget<span class="text-bb-orange">Bite</span></span>
         </div>
-        <div id="desktopNavLinks" class="flex space-x-6 text-sm font-semibold text-slate-600">
-            <a href="#" onclick="evtClickNav('all', 1, this)" class="text-bb-green hover:text-bb-green transition nav-link">Home</a>
+        <div class="flex space-x-6 text-sm font-semibold text-slate-600">
+            <a href="#" onclick="resetFilter(); filterCategory('all', document.querySelector('.category-btn'))" class="nav-link text-bb-green">Home</a>
+            <a href="#" onclick="filterTerdekat(this)" class="nav-link hover:text-bb-green transition">Terdekat</a>
+            <a href="#" onclick="filterFavorit(this)" class="nav-link hover:text-bb-green transition">Favorit</a>
             <a href="mitra.html" class="text-bb-orange hover:underline pl-4 border-l border-slate-300">Gabung Mitra ↗</a>
         </div>
     </nav>
 
     <div class="absolute top-0 right-0 left-0 h-48 bg-gradient-to-b from-green-50/50 to-transparent -z-10 pointer-events-none"></div>
 
+    <div id="locationToast" class="max-w-7xl mx-auto px-4 mt-4 hidden">
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs md:text-sm shadow-sm">
+            <div class="flex items-center space-x-2">
+                <span id="locationIcon">📍</span>
+                <p id="locationStatusText" class="font-medium">
+                    <strong>Smart Location Aktif:</strong> Menampilkan kuliner terdekat di area kampus Universitas Pakuan (&lt; 1 km).
+                </p>
+            </div>
+            <button id="toggleLocationBtn" onclick="toggleLocationSettings()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg transition text-[11px] sm:text-xs">
+                Matikan Radius Terdekat
+            </button>
+        </div>
+    </div>
+
     <div class="max-w-7xl mx-auto px-4 py-6 md:py-10 grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
         
         <aside class="md:col-span-1 bg-white border border-slate-200/80 p-5 md:p-6 rounded-2xl shadow-sm md:h-fit sticky md:top-24 z-40">
+            
             <div class="flex items-center space-x-3 mb-5 md:hidden">
                 <div class="w-10 h-10 bg-bb-green rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md shadow-emerald-100">Rp</div>
                 <div>
@@ -68,14 +85,14 @@
 
             <form id="budgetForm" onsubmit="filterMenu(event)" class="space-y-4">
                 <div>
-                    <label for="budget" class="block text-xs md:text-sm font-semibold text-slate-700 mb-2">Isi Budget Kamu (Maks Rp 18.000) :</label>
+                    <label for="budget" class="block text-xs md:text-sm font-semibold text-slate-700 mb-2">Isi Budget Kamu :</label>
                     <div class="relative rounded-xl shadow-sm">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <span class="text-slate-400 font-bold text-sm md:text-base">Rp</span>
                         </div>
-                        <input type="number" id="budget" max="18000" 
+                        <input type="number" id="budget" 
                                class="block w-full pl-11 pr-4 py-2.5 md:py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-bb-green font-bold text-base md:text-lg text-slate-700 placeholder-slate-400 bg-slate-50/50 focus:bg-white transition" 
-                               placeholder="18.000" required>
+                               placeholder="15.000" required>
                     </div>
                 </div>
                 
@@ -91,115 +108,152 @@
         </aside>
 
         <main class="md:col-span-3 space-y-5">
-            <!-- TAB KATEGORI UTAMA (Tetap dipertahankan untuk menyaring menu) -->
-            <div id="mainCategoryTabs" class="flex space-x-2 overflow-x-auto pb-4 scrollbar-hide border-b border-slate-200 text-xs md:text-sm">
+            
+            <div class="flex space-x-2 overflow-x-auto pb-4 scrollbar-hide border-b border-slate-200 text-xs md:text-sm">
                 <button onclick="filterCategory('all', this)" class="category-btn bg-bb-green text-white px-4 py-2 rounded-full font-medium cursor-pointer shadow-sm flex-shrink-0">Semua</button>
                 <button onclick="filterCategory('makanan', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Makanan</button>
                 <button onclick="filterCategory('minuman', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Minuman</button>
                 <button onclick="filterCategory('combo', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Combo Paket</button>
-                <button onclick="filterCategory('terdekat', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Terdekat</button>
-                <button onclick="filterCategory('favorit', this)" class="category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0">Favorit</button>
             </div>
 
             <div class="flex justify-between items-center px-1">
-                <h3 class="text-sm md:text-base font-bold text-slate-800 tracking-tight">Rekomendasi Untukmu</h3>
+                <h3 id="sectionTitle" class="text-sm md:text-base font-bold text-slate-800 tracking-tight">Rekomendasi Untukmu</h3>
                 <span id="menuCountBadge" class="text-[11px] md:text-xs bg-slate-200/70 text-slate-700 px-2.5 py-1 rounded-md font-semibold">
                     0 Menu Pas
                 </span>
             </div>
 
-            <div id="menuContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="menuContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            </div>
 
             <div id="emptyState" class="hidden text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
                 <span class="text-3xl">😢</span>
-                <p class="text-xs md:text-sm font-medium text-slate-500 mt-2">Waduh, nggak ada yang pas nih. Coba masukkan budget di bawah Rp 18.000!</p>
+                <p class="text-xs md:text-sm font-medium text-slate-500 mt-2">Waduh, nggak ada yang pas nih. Coba ubah pencarian atau budget Anda!</p>
             </div>
         </main>
     </div>
 
-    <!-- FOOTER MOBILE -->
     <footer class="md:hidden fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 backdrop-blur-md p-2.5 grid grid-cols-4 text-center text-[10px] font-medium text-bb-gray z-50 shadow-lg">
-        <div class="text-bb-green cursor-pointer" onclick="filterCategory('all', document.querySelector('.category-btn:nth-child(1)'))">
+        <div class="footer-link text-bb-green cursor-pointer" onclick="resetFilter(); filterCategory('all')">
             <span class="block text-xl mb-0.5">🏠</span> Home
         </div>
-        <div class="hover:text-bb-green cursor-pointer transition" onclick="filterCategory('makanan', document.querySelector('.category-btn:nth-child(2)'))">
+        <div class="footer-link hover:text-bb-green cursor-pointer transition" onclick="filterCategory('makanan')">
             <span class="block text-xl mb-0.5">🍔</span> Makanan
         </div>
-        <div class="hover:text-bb-green cursor-pointer transition" onclick="filterCategory('terdekat', document.querySelector('.category-btn:nth-child(5)'))">
+        <div class="footer-link hover:text-bb-green cursor-pointer transition" onclick="filterTerdekat(this)">
             <span class="block text-xl mb-0.5">📍</span> Terdekat
         </div>
-        <div class="hover:text-bb-green cursor-pointer transition" onclick="filterCategory('favorit', document.querySelector('.category-btn:nth-child(6)'))">
+        <div class="footer-link hover:text-bb-green cursor-pointer transition" onclick="filterFavorit(this)">
             <span class="block text-xl mb-0.5">⭐</span> Favorit
         </div>
     </footer>
 
+    <div id="detailModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-2xl transition duration-150">
+            <div class="relative h-48 w-full bg-slate-100">
+                <img id="modalImage" src="" alt="" class="w-full h-full object-cover">
+                <button onclick="closeModal()" class="absolute top-3 right-3 bg-white/80 hover:bg-white p-2 rounded-full text-slate-700 shadow transition font-bold text-sm w-8 h-8 flex items-center justify-center">✕</button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <span id="modalTag" class="bg-orange-100 text-bb-orange text-[10px] font-bold px-2 py-0.5 rounded-md">Tag</span>
+                    <h3 id="modalName" class="text-lg font-bold text-slate-800 mt-1">Nama Menu</h3>
+                    <p class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                        <span>📍</span> <span id="modalResto">Nama Restoran</span>
+                    </p>
+                </div>
+                
+                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                    <span class="text-xs text-slate-500 font-medium">Transparansi Harga</span>
+                    <span id="modalPrice" class="text-lg font-bold text-bb-orange">Rp 0</span>
+                </div>
+
+                <div class="border-t pt-3">
+                    <h4 class="text-xs font-bold text-slate-700 mb-2">Review Mahasiswa</h4>
+                    <div class="flex items-center space-x-2">
+                        <span id="modalRatingStars" class="text-bb-yellow text-sm">⭐⭐⭐⭐⭐</span>
+                        <span id="modalRatingText" class="text-xs font-bold text-slate-700">4.8</span>
+                        <span id="modalReviewCount" class="text-xs text-slate-400">(0 ulasan)</span>
+                    </div>
+                </div>
+
+                <div class="border-t pt-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
+                    <h4 class="text-xs font-bold text-emerald-800 mb-1">Berikan Ulasanmu</h4>
+                    <div class="flex space-x-1 my-1.5 cursor-pointer text-xl text-slate-300">
+                        <span onclick="setFormRating(1)" class="star-input">★</span>
+                        <span onclick="setFormRating(2)" class="star-input">★</span>
+                        <span onclick="setFormRating(3)" class="star-input">★</span>
+                        <span onclick="setFormRating(4)" class="star-input">★</span>
+                        <span onclick="setFormRating(5)" class="star-input">★</span>
+                    </div>
+                    <button onclick="submitReview()" class="w-full bg-bb-green text-white text-xs font-semibold py-2 rounded-lg hover:bg-emerald-600 transition">Kirim Ulasan</button>
+                </div>
+
+                <a href="#" target="_blank" class="w-full bg-slate-800 text-white font-semibold py-3 px-4 rounded-xl text-center block text-sm shadow-md hover:bg-slate-700 transition">
+                    Pesan Kuliner / Kunjungi Lokasi
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Data Mockup ditambahkan properti 'distance' (jarak dalam km dari Kampus)
         const allMenus = [
-            {name: 'Nasi Ayam Geprek', price: 12000, resto: 'Kantin Hebat', image: 'images/ayam-geprek.jpg', category: 'makanan', tag: 'Laris'},
-            {name: 'Mie Ayam + Bakso', price: 14000, resto: 'Kantin Sehat', image: 'images/mie-ayam-bakso.jpg', category: 'makanan', tag: 'Best Seller'},
-            {name: 'Nasi Telur + Tempe', price: 10000, resto: 'Dapur Kampus', image: 'images/nasi-telur-tempe.jpg', category: 'makanan', tag: 'Hemat'},
-            {name: 'Bakso Mercon', price: 13000, resto: 'Kantin Sehat', image: 'images/bakso-mercon.jpg', category: 'makanan', tag: 'Pedas Mantap'},
-            {name: 'Combo Worth It (Nasi + Ayam + Es Teh)', price: 15000, resto: 'Kantin Hebat', image: 'images/nasi-ayam-esteh.jpg', category: 'combo', tag: 'Best Combo'},
-            {name: 'Nasi Goreng Telur', price: 13000, resto: 'Nasgor Malam Barokah', image: 'images/nasi-goreng-telur.jpg', category: 'makanan', tag: 'Laris'},
-            {name: 'Mie Instan Telur Pedas', price: 10000, resto: 'Warkop Nugas Kuy', image: 'images/Mie-Instan.jpg', category: 'makanan', tag: 'Hemat'},
-            {name: 'Nasi Rames Campur', price: 11000, resto: 'Warteg Bahari Jaya', image: 'images/nasi-remas.jpg', category: 'makanan', tag: 'Hemat'},
-            {name: 'Soto Ayam Kuah Bening', price: 12000, resto: 'Soto Seger Boyolali', image: 'images/soto-ayam.jpg', category: 'makanan', tag: 'Laris'},
-            {name: 'Ketoprak Telur Dadar', price: 13000, resto: 'Ketoprak Jakarta Pak Kumis', image: 'images/ketoprak-telur.jpg', category: 'makanan', tag: 'Laris'},
-            {name: 'Bubur Ayam Spesial', price: 10000, resto: 'Bubur Ayam Cianjur', image: 'images/bubur-ayam.jpg', category: 'makanan', tag: 'Sarapan'},
-            {name: 'Batagor Bumbu Kacang', price: 10000, resto: 'Siomay Batagor Bandung', image: 'images/batagor.jpg', category: 'makanan', tag: 'Camilan'},
-            {name: 'Siomay Ayam', price: 10000, resto: 'Siomay Batagor Bandung', image: 'images/siomay-ayam.jpg', category: 'makanan', tag: 'Camilan'},
-            {name: 'Cireng Rujak', price: 8000, resto: 'Jajanan Gorengan Hits', image: 'images/cireng-rujak.jpg', category: 'makanan', tag: 'Murah'},
-            {name: 'Sate Taichan Ayam', price: 15000, resto: 'Taichan Pedas Gila', image: 'images/sate-taichan.jpg', category: 'makanan', tag: 'Pedas'},
-            {name: 'Es Teh Manis', price: 3000, resto: 'Kantin Hebat', image: 'images/es-teh-manis.jpg', category: 'minuman', tag: 'Segar'},
-            {name: 'Es Lemon tea', price: 5000, resto: 'Kantin Hebat', image: 'images/es-lemon-tea.jpg', category: 'minuman', tag: 'Segar'},
-            {name: 'Air Mineral', price: 5000, resto: 'Kantin Hebat', image: 'images/air-mineral-new.png', category: 'minuman', tag: 'Segar'},
-            {name: 'Teh Hangat Manis', price: 3000, resto: 'Warteg Bahari Jaya', image: 'images/teh-hangat.jpg', category: 'minuman', tag: 'Hangat'},
-            {name: 'Jeruk Peras Hangat', price: 5000, resto: 'Warteg Bahari Jaya', image: 'images/jeruk-hangat.jpg', category: 'minuman', tag: 'Hangat'},
-            {name: 'Es Kopi Good Day Freeze', price: 5000, resto: 'Warkop Nugas Kuy', image: 'images/es-kopi-goodday.jpg', category: 'minuman', tag: 'Laris'},
-            {name: 'Kopi Hitam Kapal Api', price: 4000, resto: 'Warkop Nugas Kuy', image: 'images/kopi-hitam.jpg', category: 'minuman', tag: 'Hangat'},
-            {name: 'Es Susu Soda Gembira', price: 8000, resto: 'Kedai Pedas Judes', image: 'images/es-soda-gembira.jpg', category: 'minuman', tag: 'Rekomendasi'},
-            {name: 'Es Milo Susu', price: 6000, resto: 'Warkop Nugas Kuy', image: 'images/es-milo.jpg', category: 'minuman', tag: 'Laris'},
-            {name: 'Es Cappuccino Cincau', price: 6000, resto: 'Capcin Depot Kekinian', image: 'images/capcin.jpg', category: 'minuman', tag: 'Laris'},
-            {name: 'Es Lumut Pandan', price: 5000, resto: 'Jajanan Gorengan Hits', image: 'images/es-lumut.jpg', category: 'minuman', tag: 'Murah'},
-            {name: 'Jus Alpukat Kental manis', price: 10000, resto: 'Jus Buah Segar Sehat', image: 'images/jus-alpukat.jpg', category: 'minuman', tag: 'Kenyang'},
+            {id: 1, name: 'Nasi Ayam Geprek', price: 12000, resto: 'Kantin Hebat', image: 'images/ayam-geprek.jpg', category: 'makanan', tag: 'Laris', rating: 4.8, reviews: 45, distance: 0.2},
+            {id: 2, name: 'Mie Ayam + Bakso', price: 14000, resto: 'Kantin Sehat', image: 'images/mie-ayam-bakso.jpg', category: 'makanan', tag: 'Best Seller', rating: 4.9, reviews: 62, distance: 0.4},
+            {id: 3, name: 'Nasi Telur + Tempe', price: 10000, resto: 'Dapur Kampus', image: 'images/nasi-telur-tempe.jpg', category: 'makanan', tag: 'Hemat', rating: 4.5, reviews: 28, distance: 0.1},
+            {id: 4, name: 'Bakso Mercon', price: 13000, resto: 'Kantin Sehat', image: 'images/bakso-mercon.jpg', category: 'makanan', tag: 'Pedas Mantap', rating: 4.7, reviews: 33, distance: 0.4},
+            {id: 5, name: 'Combo Worth It (Nasi + Ayam + Es Teh)', price: 15000, resto: 'Kantin Hebat', image: 'images/nasi-ayam-esteh.jpg', category: 'combo', tag: 'Best Combo', rating: 4.9, reviews: 89, distance: 0.2},
+            {id: 6, name: 'Nasi Goreng Telur', price: 13000, resto: 'Nasgor Malam Barokah', image: 'images/nasi-goreng-telur.jpg', category: 'makanan', tag: 'Laris', rating: 4.6, reviews: 54, distance: 1.5}, // Jauh
+            {id: 7, name: 'Mie Instan Telur Pedas', price: 10000, resto: 'Warkop Nugas Kuy', image: 'images/Mie-Instan.jpg', category: 'makanan', tag: 'Hemat', rating: 4.4, reviews: 21, distance: 0.3},
+            {id: 8, name: 'Nasi Rames Campur', price: 11000, resto: 'Warteg Bahari Jaya', image: 'images/nasi-remas.jpg', category: 'makanan', tag: 'Hemat', rating: 4.5, reviews: 38, distance: 0.6},
+            {id: 9, name: 'Soto Ayam Kuah Bening', price: 12000, resto: 'Soto Seger Boyolali', image: 'images/soto-ayam.jpg', category: 'makanan', tag: 'Laris', rating: 4.7, reviews: 41, distance: 2.3}, // Jauh
+            {id: 10, name: 'Ketoprak Telur Dadar', price: 13000, resto: 'Ketoprak Jakarta Pak Kumis', image: 'images/ketoprak-telur.jpg', category: 'makanan', tag: 'Laris', rating: 4.6, reviews: 29, distance: 1.8}, // Jauh
+            {id: 11, name: 'Bubur Ayam Spesial', price: 10000, resto: 'Bubur Ayam Cianjur', image: 'images/bubur-ayam.jpg', category: 'makanan', tag: 'Sarapan', rating: 4.5, reviews: 17, distance: 0.5},
+            {id: 12, name: 'Batagor Bumbu Kacang', price: 10000, resto: 'Siomay Batagor Bandung', image: 'images/batagor.jpg', category: 'makanan', tag: 'Camilan', rating: 4.4, reviews: 23, distance: 0.7},
+            {id: 13, name: 'Siomay Ayam', price: 10000, resto: 'Siomay Batagor Bandung', image: 'images/siomay-ayam.jpg', category: 'makanan', tag: 'Camilan', rating: 4.3, reviews: 14, distance: 0.7},
+            {id: 14, name: 'Cireng Rujak', price: 8000, resto: 'Jajanan Gorengan Hits', image: 'images/cireng-rujak.jpg', category: 'makanan', tag: 'Murah', rating: 4.7, reviews: 65, distance: 0.5},
+            {id: 15, name: 'Sate Taichan Ayam', price: 15000, resto: 'Taichan Pedas Gila', image: 'images/sate-taichan.jpg', category: 'makanan', tag: 'Pedas', rating: 4.8, reviews: 72, distance: 3.1}, // Jauh
+            {id: 16, name: 'Es Teh Manis', price: 3000, resto: 'Kantin Hebat', image: 'images/es-teh-manis.jpg', category: 'minuman', tag: 'Segar', rating: 4.9, reviews: 150, distance: 0.2},
+            {id: 17, name: 'Es Lemon tea', price: 5000, resto: 'Kantin Hebat', image: 'images/es-lemon-tea.jpg', category: 'minuman', tag: 'Segar', rating: 4.7, reviews: 48, distance: 0.2},
+            {id: 18, name: 'Air Mineral', price: 5000, resto: 'Kantin Hebat', image: 'images/air-mineral-new.png', category: 'minuman', tag: 'Segar', rating: 4.8, reviews: 94, distance: 0.2},
+            {id: 19, name: 'Teh Hangat Manis', price: 3000, resto: 'Warteg Bahari Jaya', image: 'images/teh-hangat.jpg', category: 'minuman', tag: 'Hangat', rating: 4.5, reviews: 30, distance: 0.6},
+            {id: 20, name: 'Jeruk Peras Hangat', price: 5000, resto: 'Warteg Bahari Jaya', image: 'images/jeruk-hangat.jpg', category: 'minuman', tag: 'Hangat', rating: 4.6, reviews: 27, distance: 0.6},
+            {id: 21, name: 'Es Kopi Good Day Freeze', price: 5000, resto: 'Warkop Nugas Kuy', image: 'images/es-kopi-goodday.jpg', category: 'minuman', tag: 'Laris', rating: 4.7, reviews: 83, distance: 0.3},
+            {id: 22, name: 'Kopi Hitam Kapal Api', price: 4000, resto: 'Warkop Nugas Kuy', image: 'images/kopi-hitam.jpg', category: 'minuman', tag: 'Hangat', rating: 4.5, reviews: 59, distance: 0.3},
+            {id: 23, name: 'Es Susu Soda Gembira', price: 8000, resto: 'Kedai Pedas Judes', image: 'images/es-soda-gembira.jpg', category: 'minuman', tag: 'Rekomendasi', rating: 4.8, reviews: 36, distance: 1.2}, // Jauh
+            {id: 24, name: 'Es Milo Susu', price: 6000, resto: 'Warkop Nugas Kuy', image: 'images/es-milo.jpg', category: 'minuman', tag: 'Laris', rating: 4.7, reviews: 68, distance: 0.3},
+            {id: 25, name: 'Es Cappuccino Cincau', price: 6000, resto: 'Capcin Depot Kekinian', image: 'images/capcin.jpg', category: 'minuman', tag: 'Laris', rating: 4.6, reviews: 52, distance: 1.1}, // Jauh
+            {id: 26, name: 'Es Lumut Pandan', price: 5000, resto: 'Jajanan Gorengan Hits', image: 'images/es-lumut.jpg', category: 'minuman', tag: 'Murah', rating: 4.5, reviews: 19, distance: 0.5},
+            {id: 27, name: 'Jus Alpukat Kental manis', price: 10000, resto: 'Jus Buah Segar Sehat', image: 'images/jus-alpukat.jpg', category: 'minuman', tag: 'Kenyang', rating: 4.8, reviews: 43, distance: 1.4}, // Jauh
         ];
 
         let currentBudget = 0;
         let currentCategory = 'all';
+        let isFavoriteFilter = false;
+        let isLocationActive = true; // Status filter lokasi default (ON)
+        let selectedRating = 5;
+        let activeMenuId = null;
 
         function formatRupiah(number) {
             return new Intl.NumberFormat('id-ID').format(number);
         }
 
-        function evtClickNav(category, childIndex, element) {
-            event.preventDefault();
-            document.querySelectorAll('.nav-link').forEach(link => link.className = "hover:text-bb-green transition nav-link");
-            if(element) element.className = "text-bb-green hover:text-bb-green transition nav-link";
-
-            const targetBtn = document.querySelector(`#mainCategoryTabs button:nth-child(${childIndex})`);
-            filterCategory(category, targetBtn);
-        }
-
+        // Fungsi Render Card Menu Utama (Diperbaiki agar menyaring jarak < 1 km)
         function renderMenus() {
             const container = document.getElementById('menuContainer');
             const emptyState = document.getElementById('emptyState');
             container.innerHTML = '';
 
             const filtered = allMenus.filter(menu => {
-                const matchBudget = currentBudget === 0 || menu.price <= currentBudget;
+                const smokyBudget = currentBudget === 0 || menu.price <= currentBudget;
+                const smokyCategory = currentCategory === 'all' || menu.category === currentCategory;
+                const smokyFavorite = !isFavoriteFilter || menu.rating >= 4.8;
                 
-                let matchCategory = false;
-                if (currentCategory === 'all') {
-                    matchCategory = true;
-                } else if (currentCategory === 'terdekat') {
-                    matchCategory = menu.resto.includes('Kantin') || menu.resto.includes('Dapur Kampus');
-                } else if (currentCategory === 'favorit') {
-                    matchCategory = menu.tag === 'Best Seller' || menu.tag === 'Laris' || menu.tag === 'Rekomendasi';
-                } else {
-                    matchCategory = menu.category === currentCategory;
-                }
+                // PERBAIKAN UTAMA: Jika status lokasi ON, sembunyikan semua menu yang jaraknya >= 1.0 km
+                const smokyLocation = !isLocationActive || menu.distance < 1.0;
 
-                return matchBudget && matchCategory;
+                return smokyBudget && smokyCategory && smokyFavorite && smokyLocation;
             });
 
             document.getElementById('menuCountBadge').innerText = `${filtered.length} Menu Pas`;
@@ -213,7 +267,7 @@
 
             filtered.forEach(menu => {
                 const card = `
-                    <div class="bg-white border border-slate-200/70 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 md:hover:-translate-y-1 transition duration-200 flex flex-row sm:flex-col justify-between h-28 sm:h-auto">
+                    <div onclick="openModal(${menu.id})" class="bg-white border border-slate-200/70 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 md:hover:-translate-y-1 transition duration-200 flex flex-row sm:flex-col justify-between h-28 sm:h-auto cursor-pointer">
                         <div class="relative w-28 sm:w-full h-full sm:h-40 flex-shrink-0">
                             <img src="${menu.image}" alt="${menu.name}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">
                             <span class="absolute top-2 left-2 bg-white/95 backdrop-blur-sm text-bb-orange text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
@@ -223,9 +277,14 @@
                         <div class="p-3 md:p-4 flex-1 flex flex-col justify-between min-w-0">
                             <div>
                                 <h4 class="font-bold text-xs md:text-sm text-slate-800 truncate mb-0.5">${menu.name}</h4>
-                                <p class="text-[11px] text-bb-gray flex items-center gap-1">
-                                    <span>📍</span> <span class="truncate">${menu.resto}</span>
+                                <p class="text-[11px] text-bb-gray flex items-center gap-1 mb-1">
+                                    <span>📍</span> <span class="truncate">${menu.resto} (${menu.distance} km)</span>
                                 </p>
+                                <div class="flex items-center space-x-1 text-[10px]">
+                                    <span class="text-bb-yellow">⭐</span>
+                                    <span class="font-semibold text-slate-700">${menu.rating}</span>
+                                    <span class="text-slate-400">(${menu.reviews} ulasan)</span>
+                                </div>
                             </div>
                             <div class="mt-2 sm:mt-4 pt-2 sm:pt-3 border-t border-slate-100 flex justify-between items-center">
                                 <span class="hidden sm:inline text-[11px] text-slate-400 font-medium">Harga</span>
@@ -238,6 +297,64 @@
                 `;
                 container.innerHTML += card;
             });
+        }
+
+        // Fungsi Sakelar Tombol ON/OFF Lokasi
+        function toggleLocationSettings() {
+            const statusText = document.getElementById('locationStatusText');
+            const toggleBtn = document.getElementById('toggleLocationBtn');
+            const toastDiv = document.getElementById('locationToast');
+            const icon = document.getElementById('locationIcon');
+
+            isLocationActive = !isLocationActive;
+
+            if (isLocationActive) {
+                toastDiv.className = "max-w-7xl mx-auto px-4 mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs md:text-sm shadow-sm animate-pulse";
+                statusText.innerHTML = "<strong>Smart Location Aktif:</strong> Menampilkan kuliner terdekat di area kampus Universitas Pakuan (&lt; 1 km).";
+                toggleBtn.innerText = "Matikan Radius Terdekat";
+                toggleBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg transition text-[11px] sm:text-xs";
+                icon.innerText = "📍";
+            } else {
+                toastDiv.className = "max-w-7xl mx-auto px-4 mt-4 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs md:text-sm shadow-sm";
+                statusText.innerHTML = "<strong>Radius Terdekat Mati:</strong> Menampilkan seluruh daftar warung/restoran tanpa batasan jarak wilayah.";
+                toggleBtn.innerText = "Aktifkan Jarak Dekat";
+                toggleBtn.className = "bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg transition text-[11px] sm:text-xs";
+                icon.innerText = "🌐";
+            }
+
+            setTimeout(() => toastDiv.classList.remove('animate-pulse'), 1000);
+            renderMenus(); // Jalankan ulang penyaringan
+        }
+
+        function filterTerdekat(element) {
+            isFavoriteFilter = false;
+            document.getElementById('sectionTitle').innerText = "Kuliner Terdekat Sekitar Kampus";
+            
+            const comboBtn = document.querySelectorAll('.category-btn')[3];
+            filterCategory('combo', comboBtn);
+            updateActiveNavbarStyle(element);
+        }
+
+        function filterFavorit(element) {
+            isFavoriteFilter = true;
+            currentCategory = 'all';
+            document.getElementById('sectionTitle').innerText = "Menu Rating Tertinggi Pilihan Mahasiswa";
+            
+            document.querySelectorAll('.category-btn').forEach((btn, idx) => {
+                btn.className = idx === 0 
+                    ? "category-btn bg-bb-green text-white px-4 py-2 rounded-full font-medium cursor-pointer shadow-sm flex-shrink-0"
+                    : "category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0";
+            });
+            
+            updateActiveNavbarStyle(element);
+            renderMenus();
+        }
+
+        function updateActiveNavbarStyle(element) {
+            if(!element) return;
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('text-bb-green'));
+            document.querySelectorAll('.footer-link').forEach(link => link.classList.remove('text-bb-green'));
+            element.classList.add('text-bb-green');
         }
 
         function filterMenu(event) {
@@ -254,15 +371,33 @@
             renderMenus();
         }
 
+        // Modifikasi sedikit pada resetFilter agar menyelaraskan keadaan awal
         function resetFilter() {
             document.getElementById('budget').value = '';
             currentBudget = 0;
+            isFavoriteFilter = false;
+            document.getElementById('sectionTitle').innerText = "Rekomendasi Untukmu";
             document.getElementById('budgetStatus').classList.add('hidden');
+            
+            // Kembalikan tombol kategori ke "Semua"
+            const allBtn = document.querySelectorAll('.category-btn')[0];
+            if(allBtn) {
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.className = "category-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full font-medium cursor-pointer hover:bg-slate-50 transition flex-shrink-0";
+                });
+                allBtn.className = "category-btn bg-bb-green text-white px-4 py-2 rounded-full font-medium cursor-pointer shadow-sm flex-shrink-0";
+            }
+            currentCategory = 'all';
+
+            const homeLink = document.querySelectorAll('.nav-link')[0];
+            if(homeLink) updateActiveNavbarStyle(homeLink);
+            
             renderMenus();
         }
 
         function filterCategory(category, element) {
             currentCategory = category;
+            document.getElementById('sectionTitle').innerText = "Rekomendasi Untukmu";
             
             if(element) {
                 document.querySelectorAll('.category-btn').forEach(btn => {
@@ -273,7 +408,60 @@
             renderMenus();
         }
 
-        window.onload = renderMenus;
+        function openModal(id) {
+            const menu = allMenus.find(m => m.id === id);
+            if(!menu) return;
+
+            activeMenuId = id;
+            document.getElementById('modalImage').src = menu.image;
+            document.getElementById('modalTag').innerText = menu.tag;
+            document.getElementById('modalName').innerText = menu.name;
+            document.getElementById('modalResto').innerText = `${menu.resto} (${menu.distance} km)`;
+            document.getElementById('modalPrice').innerText = `Rp ${formatRupiah(menu.price)}`;
+            document.getElementById('modalRatingText').innerText = menu.rating;
+            document.getElementById('modalReviewCount').innerText = `(${menu.reviews} ulasan)`;
+            document.getElementById('modalRatingStars').innerText = '⭐'.repeat(Math.round(menu.rating));
+
+            setFormRating(5);
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        // Form rating bintang di pop-up modal
+        function setFormRating(rating) {
+            selectedRating = rating;
+            const stars = document.querySelectorAll('.star-input');
+            stars.forEach((star, index) => {
+                if(index < rating) {
+                    star.classList.add('text-bb-yellow');
+                    star.classList.remove('text-slate-300');
+                } else {
+                    star.classList.remove('text-bb-yellow');
+                    star.classList.add('text-slate-300');
+                }
+            });
+        }
+
+        function submitReview() {
+            const menu = allMenus.find(m => m.id === activeMenuId);
+            if(menu) {
+                menu.reviews += 1;
+                menu.rating = ((menu.rating * (menu.reviews - 1) + selectedRating) / menu.reviews).toFixed(1);
+                alert('Terima kasih! Ulasan jujur mahasiswa Anda berhasil dikirim.');
+                openModal(menu.id);
+                renderMenus();
+            }
+        }
+
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('locationToast').classList.remove('hidden');
+            }, 500);
+            renderMenus();
+        };
     </script>
 </body>
 </html>
